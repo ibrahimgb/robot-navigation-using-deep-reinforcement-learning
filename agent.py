@@ -6,8 +6,8 @@ from game import CarGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot
 
-MAX_MEMORY = 20_000
-BATCH_SIZE = 500
+MAX_MEMORY = 100_000
+BATCH_SIZE = 1000
 LR = 0.001
 
 class Agent:
@@ -106,50 +106,48 @@ def train():
     plot_mean_scores = []
     total_score = 0
     record = 0
-    #record1 = 0
+
     agent = Agent()
     game = CarGameAI()
-    #game1 = CarGameAI()
-    #agent1 = Agent()
+
+
     print("starting")
     while True:
         # get old state
         state_old = agent.get_state(game)
-        #state_old1 = agent1.get_state(game1)
+
         print(state_old)
         # get move
         final_move = agent.get_action(state_old)
-        #final_move1 = agent1.get_action(state_old1)
+
         #print(final_move)
-        # perform move and get new state
+        #perform move and get new state
         reward, done, score = game.play_step(final_move)
-        #reward1, done1, score1 = game1.play_step(final_move1)
+
         state_new = agent.get_state(game)
-        #state_new1 = agent1.get_state(game1)
+
 
         # train short memory
-        #agent.train_short_memory(state_old, final_move, reward, state_new, done)
-        #agent1.train_short_memory(state_old1, final_move1, reward1, state_new1, done1)
+        agent.train_short_memory(state_old, final_move, reward, state_new, done)
+
 
         # remember
         agent.remember(state_old, final_move, reward, state_new, done)
-        #agent1.remember(state_old1, final_move1, reward1, state_new1, done1)
+
 
         if done:
             # train long memory, plot result
             game.reset()
-            #game1.reset()
+
             agent.n_games += 1
-            #agent1.n_games += 1
+
             agent.train_long_memory()
-            #agent1.train_long_memory()
+
 
             if score > record:
                 record = score
                 agent.model.save()
-            #if score1 > record1:
-            #    record1 = score1
-            #    agent1.model.save()
+
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 

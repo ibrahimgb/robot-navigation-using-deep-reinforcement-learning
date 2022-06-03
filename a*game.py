@@ -2,7 +2,7 @@ import pygame
 import random
 from enum import Enum
 from collections import namedtuple
-import numpy as np
+from helper import plot
 
 pygame.init()
 font = pygame.font.Font('arial.ttf', 25)
@@ -21,43 +21,50 @@ Point = namedtuple('Point', 'x, y')
 
 # rgb colors
 WHITE = (255, 255, 255)
-RED = (0, 255, 0)
+RED = (0,255,0)
 BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
-GREY1 = (128, 200, 0)
-GREY2 = (200, 200, 0)
-BLACK = (128, 128, 128)
-
+BLACK = (128,128,128)
+GREY1 = (128,200,0)
+GREY2 = (200,200,0)
 BLOCK_SIZE = 20
-SPEED = 40
+SPEED = 20
 
 
-class CarGameAI:
+class CarGameAStar:
 
     def __init__(self, w=640, h=480):
         self.w = w
         self.h = h
         # init display
-        # self.first_time = True
         self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Car Nav')
+        pygame.display.set_caption('Snake')
         self.clock = pygame.time.Clock()
-        self.obstacle = []
-        self.reset()
 
-    def reset(self):
         # init game state
         self.direction = Direction.RIGHT
 
         self.head = Point(self.w / 2, self.h / 2)
         self.car = [self.head]
-
+        self.obstacle = []
         self.score = 0
         self.food = None
         self._place_food()
-        self.frame_iteration = 0
-        self.obstacle = []
-        # self.first_time = True
+        self.plot_scores = []
+        self.plot_mean_scores = []
+        self.n_games = 1
+        self.scores = []
+
+    def _place_obstacle(self):#t gole need to change
+        x = random.randint(0, (self.w-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE
+        y = random.randint(0, (self.h-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE
+        obstacle = Point(x, y)
+
+        if obstacle in self.obstacle or self.head == obstacle or self.food == obstacle:
+            self._place_obstacle()
+        self.obstacle.append(obstacle)
+
+
 
     def _place_food(self):  # t gole need to change
         x = random.randint(0, (self.w - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
@@ -70,40 +77,60 @@ class CarGameAI:
         self._place_obstacle()
         print("this is coooooooooooooooooooooooooooooooooooooooooooooooool")
 
-    def _place_obstacle(self):  # t gole need to change
-        x = random.randint(0, (self.w - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
-        y = random.randint(0, (self.h - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
-        obstacle = Point(x, y)
+    def reset(self):
 
-        if obstacle in self.obstacle or self.head == obstacle or self.food == obstacle:
-            self._place_obstacle()
-        self.obstacle.append(obstacle)
+        self.plot_scores.append(score)
+        total_score = sum(self.scores)
+        mean_score = total_score / self.n_games
+        self.plot_mean_scores.append(mean_score)
+        plot(self.plot_scores, self.plot_mean_scores)
 
-    def play_step(self, action):
-        self.frame_iteration += 1
+
+        # init game state
+        self.direction = Direction.RIGHT
+
+        self.head = Point(self.w / 2, self.h / 2)
+        self.car = [self.head]
+        self.n_games = self.n_games + 1
+        self.scores.append(self.score)
+        self.score = 0
+        self.food = None
+        self._place_food()
+        self.frame_iteration = 0
+        self.obstacle = []
+        #self.first_time = True
+
+    def play_step(self):
         # 1. collect user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.direction = Direction.LEFT
+                elif event.key == pygame.K_RIGHT:
+                    self.direction = Direction.RIGHT
+                elif event.key == pygame.K_UP:
+                    self.direction = Direction.UP
+                elif event.key == pygame.K_DOWN:
+                    self.direction = Direction.DOWN
+
 
         # 2. move
-        self._move(action)  # update the head
+        self._move(self.direction)  # update the head
         self.car.insert(0, self.head)
 
         # 3. check if game over
-        reward = 0
         game_over = False
+        if self.is_collision():
+            self.reset()
 
-        if self.is_collision() or self.frame_iteration > 100 * len(self.car):
-            game_over = True
-            reward = -10
-            return reward, game_over, self.score
+            return game_over, self.score
 
         # 4. place new food or just move
         if self.head == self.food:
             self.score += 1
-            reward = 10
             self._place_food()
             self.car.pop()
         else:
@@ -113,14 +140,16 @@ class CarGameAI:
         self._update_ui()
         self.clock.tick(SPEED)
         # 6. return game over and score
-        return reward, game_over, self.score
+        return game_over, self.score
 
     def is_collision(self, pt=None):
-        print(self.frame_iteration)
+        #print(self.frame_iteration)
+
         if pt is None:
             pt = self.head
         # hits boundary
         if pt.x > self.w - BLOCK_SIZE or pt.x < 0 or pt.y > self.h - BLOCK_SIZE or pt.y < 0:
+            self.reset()
             return True
         # if self.head in self.obstacle:
         if pt in self.obstacle:  #########################################""
@@ -133,14 +162,13 @@ class CarGameAI:
 
     def _update_ui(self):
         self.display.fill(BLACK)
-        # print(self.snake)
-        # print(self.obstacle)
+
         for pt in self.car:
             pygame.draw.rect(self.display, BLUE1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
             pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
         for pt in self.obstacle:
             pygame.draw.rect(self.display, GREY1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
-            pygame.draw.rect(self.display, GREY2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            pygame.draw.rect(self.display, GREY2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
 
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
 
@@ -148,39 +176,25 @@ class CarGameAI:
         self.display.blit(text, [0, 0])
         pygame.display.flip()
 
-    def _move(self, action):
-        # [straight, right, left]
-
-        clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
-        idx = clock_wise.index(self.direction)
-
-        if np.array_equal(action, [1, 0, 0]):
-            new_dir = clock_wise[idx]  # no change
-        elif np.array_equal(action, [0, 1, 0]):
-            next_idx = (idx + 1) % 4
-            new_dir = clock_wise[next_idx]  # right turn r -> d -> l -> u
-        else:  # [0, 0, 1]
-            next_idx = (idx - 1) % 4
-            new_dir = clock_wise[next_idx]  # left turn r -> u -> l -> d
-
-        self.direction = new_dir
-
+    def _move(self, direction):
         x = self.head.x
         y = self.head.y
-        if self.direction == Direction.RIGHT:
+        if self.food.x > self.head.x:
             x += BLOCK_SIZE
-        elif self.direction == Direction.LEFT:
+        elif self.food.x < self.head.x:
             x -= BLOCK_SIZE
-        elif self.direction == Direction.DOWN:
+        elif self.food.y > self.head.y:
             y += BLOCK_SIZE
-        elif self.direction == Direction.UP:
+        elif self.food.y < self.head.y:
             y -= BLOCK_SIZE
 
         self.head = Point(x, y)
 
 
+
+
 if __name__ == '__main__':
-    game = SnakeGame()
+    game = CarGameAStar()
 
     # game loop
     while True:
