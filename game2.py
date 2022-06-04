@@ -3,10 +3,11 @@ import random
 from enum import Enum
 from collections import namedtuple
 import numpy as np
+import math
 
 pygame.init()
 font = pygame.font.Font('arial.ttf', 25)
-
+SPEED = 40
 
 # font = pygame.font.SysFont('arial', 25)
 
@@ -29,8 +30,7 @@ GREY2 = (200, 200, 0)
 BLACK = (128, 128, 128)
 
 BLOCK_SIZE = 20
-SPEED = 40
-OldDistence = 100
+
 
 
 class CarGameAI:
@@ -38,7 +38,6 @@ class CarGameAI:
     def __init__(self, w=640, h=480):
         self.w = w
         self.h = h
-        self.OldDistence = OldDistence
         # init display
         # self.first_time = True
         self.display = pygame.display.set_mode((self.w, self.h))
@@ -56,21 +55,24 @@ class CarGameAI:
 
         self.score = 0
         self.food = None
+        self.gole = []
         self._place_food()
         self.frame_iteration = 0
         self.obstacle = []
+
         # self.first_time = True
 
     def _place_food(self):  # t gole need to change
         x = random.randint(0, (self.w - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
         y = random.randint(0, (self.h - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
         self.food = Point(x, y)
-        if self.food in self.car:
+        if self.food in self.car or self.food in self.obstacle:
             self._place_food()
 
         self.frame_iteration = 0
+        self.gole = [x , y]
         self._place_obstacle()
-        print("this is coooooooooooooooooooooooooooooooooooooooooooooooool")
+        #print("this is coooooooooooooooooooooooooooooooooooooooooooooooool")
 
     def _place_obstacle(self):  # t gole need to change
         x = random.randint(0, (self.w - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
@@ -92,7 +94,16 @@ class CarGameAI:
 
         return self.play_step(preformd_action)
 
+    def distance(self, point1, point2):
+        #print(point1)
+        #print(self.head[0])
+        #print(point2)
+        return round(math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2), 2)
+
     def play_step(self, action):
+
+        oldDistence = self.distance(self.head,self.gole)
+        #print(oldDistence)
         self.frame_iteration += 1
         # 1. collect user input
         for event in pygame.event.get():
@@ -104,9 +115,18 @@ class CarGameAI:
         self._move(action)  # update the head
         self.car.insert(0, self.head)
 
-        # 3. check if game over
+        newDistence = self.distance(self.head, self.gole)
+
         reward = 0
         game_over = False
+
+        #print(newDistence-oldDistence)
+        if newDistence < oldDistence:
+            reward = reward+2
+
+
+        # 3. check if game over
+
 
         if self.is_collision():  # or self.frame_iteration > 100*len(self.car):
             game_over = True
@@ -130,7 +150,7 @@ class CarGameAI:
         return reward, game_over, self.score
 
     def is_collision(self, pt=None):
-        print(self.frame_iteration)
+        #print(self.frame_iteration)
         if pt is None:
             pt = self.head
         # hits boundary

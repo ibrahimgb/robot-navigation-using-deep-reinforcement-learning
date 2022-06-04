@@ -15,11 +15,7 @@ class Agent:
 
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 0  # randomness
-        self.gamma = 0.9  # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-        self.model = Linear_QNet(11, 256, 3)
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+
 
     def get_state(self, game):
         head = game.car[0]
@@ -54,30 +50,41 @@ class Agent:
             (dir_r and game.is_collision(point_u)) or
             (dir_l and game.is_collision(point_d)),
 
-            # Move direction
-            dir_l,
-            dir_r,
-            dir_u,
-            dir_d,
+            # food straight
+            (dir_r and game.food.x > game.head.x) or
+            (dir_l and game.food.x < game.head.x) or
+            (dir_u and game.food.y < game.head.y) or
+            (dir_d and game.food.y > game.head.y),
 
-            # Food location
-            game.food.x < game.head.x,  # food left
-            game.food.x > game.head.x,  # food right
-            game.food.y < game.head.y,  # food up
-            game.food.y > game.head.y  # food down
+            # food right
+            (dir_u and game.food.x > game.head.x) or
+            (dir_d and game.food.x < game.head.x) or
+            (dir_l and game.food.y < game.head.y) or
+            (dir_r and game.food.y > game.head.y),
+
+            # food left
+            (dir_d and game.food.x > game.head.x) or
+            (dir_u and game.food.x < game.head.x) or
+            (dir_r and game.food.y < game.head.y) or
+            (dir_l and game.food.y > game.head.y),
+            # food back
+            (dir_d and game.food.y < game.head.y) or
+            (dir_u and game.food.y > game.head.y) or
+            (dir_r and game.food.x < game.head.x) or
+            (dir_l and game.food.x > game.head.x)
         ]
 
         stateInt = np.array(state, dtype=int)
 
         stateToReturn = (stateInt[0],stateInt[1],stateInt[2],stateInt[3],stateInt[4]
-                         ,stateInt[5],stateInt[6],stateInt[7],stateInt[8],stateInt[9],stateInt[10])
+                         ,stateInt[5],stateInt[6])
         #print(stateToReturn)
         return stateToReturn
 
 
 def max_action(Q, state, actions=[0,1,2]):
     values = np.array([Q[state,a] for a in actions])
-    print(values)
+    #print(values)
     action = np.argmax(values)
 
     return action
@@ -101,10 +108,6 @@ if __name__ == '__main__':
     # dangerStraight
     # dangerRight
     # dangerLeft
-    # moveDirectionL
-    # moveDirectionR
-    # moveDirectionB
-    # moveDirectionF
     # foodLocationL
     # foodLocationR
     # foodLocationB
@@ -114,15 +117,12 @@ if __name__ == '__main__':
     for dangerStraight in range(2):
         for dangerRight in range(2):
             for dangerLeft in range(2):
-                for moveDirectionL in range(2):
-                    for moveDirectionR in range(2):
-                        for moveDirectionB in range(2):
-                            for moveDirectionF in range(2):
-                                for foodLocationL in range(2):
-                                    for foodLocationR in range(2):
-                                        for foodLocationB in range(2):
-                                            for foodLocationF in range(2):
-                                                states.append((dangerStraight , dangerRight , dangerLeft , moveDirectionL , moveDirectionR , moveDirectionB , moveDirectionF , foodLocationL , foodLocationR , foodLocationB , foodLocationF))
+                for foodLocationL in range(2):
+                    for foodLocationR in range(2):
+                        for foodLocationB in range(2):
+                            for foodLocationF in range(2):
+                                states.append((dangerStraight , dangerRight , dangerLeft , foodLocationL , foodLocationR , foodLocationB , foodLocationF))
+
 
 
     Q = {}
@@ -157,12 +157,7 @@ if __name__ == '__main__':
             score += reward
 
             action_ = max_action(Q, state_)
-            print("rr")
-            print(state_)
-            print(action_)
-            print(Q[state, action])
-            print(Q[state_, action_])
-            print("gg")
+
             Q[state, action] = Q[state, action] + alpha*(reward + gamma*Q[state_, action_] - Q[state, action])
             state = state_
         total_rewards[i] = score

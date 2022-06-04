@@ -109,20 +109,20 @@ class CarGameAI:
         reward = 0
         game_over = False
 
-        if self.is_collision() :#or self.frame_iteration > 100*len(self.car):
+        if self.is_collision() or self.frame_iteration > 100*len(self.car):
             game_over = True
-            reward = -300
+            reward = -10
             return reward, game_over, self.score
 
         # 4. place new food or just move
         if self.head == self.food:
             self.score += 1
-            reward = 300
+            reward = 10
             self._place_food()
             self.car.pop()
         else:
             self.car.pop()
-            reward = reward - 1
+            #reward = reward - 0.1
         
         # 5. update ui and clock
         self._update_ui()
