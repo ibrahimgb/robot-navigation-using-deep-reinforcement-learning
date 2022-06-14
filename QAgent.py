@@ -141,6 +141,8 @@ if __name__ == '__main__':
         agent = Agent()
         state = agent.get_state(game)
         score = 0
+        #if i % 100 == 0 and i > 0:
+            #print('episode ', i, 'score ', score, 'epsilon %.3f' % eps)
         values = np.array([Q[state, a] for a in [0,1,2]])
         print("rr")
         print(Q)
