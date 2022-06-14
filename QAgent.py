@@ -134,19 +134,16 @@ if __name__ == '__main__':
     score = 0
     #print(states)
     total_rewards = np.zeros(n_games)
+    
     for i in range(n_games):
-        done = False
-        ##
+        done = False 
         game = CarGameAI()
         agent = Agent()
         state = agent.get_state(game)
         score = 0
-        #if i % 100 == 0 and i > 0:
+        #if i % 50 == 0 and i > 0:
             #print('episode ', i, 'score ', score, 'epsilon %.3f' % eps)
         values = np.array([Q[state, a] for a in [0,1,2]])
-        print("rr")
-        print(Q)
-        print("rr")
         while not done:
 
             action = np.random.choice([0,1,2]) if np.random.random() < eps \
