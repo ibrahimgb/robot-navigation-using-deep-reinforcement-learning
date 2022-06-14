@@ -121,7 +121,8 @@ if __name__ == '__main__':
                     for foodLocationR in range(2):
                         for foodLocationB in range(2):
                             for foodLocationF in range(2):
-                                states.append((dangerStraight , dangerRight , dangerLeft , foodLocationL , foodLocationR , foodLocationB , foodLocationF))
+                                states.append((dangerStraight , dangerRight , dangerLeft , foodLocationL , 
+                                               foodLocationR , foodLocationB , foodLocationF))
 
 
 
