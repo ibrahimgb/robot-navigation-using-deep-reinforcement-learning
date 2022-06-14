@@ -140,8 +140,6 @@ if __name__ == '__main__':
         game = CarGameAI()
         agent = Agent()
         state = agent.get_state(game)
-        #if i % 100 == 0 and i > 0:
-            #print('episode ', i, 'score ', score, 'epsilon %.3f' % eps)
         score = 0
         values = np.array([Q[state, a] for a in [0,1,2]])
         print("rr")
