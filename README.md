@@ -11,13 +11,12 @@ In this regard, researchers have looked into a number of techniques for robot na
 The environment for this problem is a grid with obstacles and a single goal. the agent is placed randomly (in an unoccupied cell) in the environment. The agent goal is to reach the goal cell as quickly as possible. To get there the agent moves through the cells in a succession of steps. For every step, the agent must decide which action to take (move left/right/forward). For this purpose the agent is trained; it learns a policy that tells what is the best next move to make. With every step, the agent incurs a penalty or (when finally reaching the exit) a reward. These penalties and rewards are the input when training the policy.
 
  A invierment (2d grid) with obstcels. A Robot is placed at the start cell (random sell) and must find the goal cell by moving through.
-Empty cells are where the robot can move, a cell that contains an obstacle and cannot be entered which is detected by the senses of the robot and if the robot crashes it will restart, robotPos cell indicates the current position of the robot, and the rules how to move through it are called the environment. A robot is placed
-at the start cell. The robot chooses actions (move left/right/forward) in order to reach the Goal-cell. 
- Every action results in a reward or penalty  Every move gives a small penalty (-1) and running into an obstacle a large penalty (-100). The reward (+100) is collected when the agent reaches the Goal. 
- 
- 
-reaching the goal in the terminal state means winning; the robot either wins or loses. 
+Empty cells are where the robot can move, a cell that contains an obstacle and cannot be entered which is detected by the senses of the robot and if the robot crashes it will restart, robotPos cell indicates the current position of the robot, and the rules how to move through it are called the environment. A robot is placed at the start cell. The robot chooses actions (move left/right/forward) in order to reach the Goal-cell. 
+ Every action results in a reward or penalty  Every move gives a small penalty (-1) and running into an obstacle a large penalty (-100). The reward (+100) is collected when the agent reaches the Goal. reaching the goal in the terminal state means winning; the robot either wins or loses. 
 the robot starts in a simple environment (with 20 obstacles) and for every successful operation (retching the goal) the reboot will get reassigned to another goal (destination) and the other obstacle is added to the environment.
+
+
+![DQL complex envierment (3)](https://user-images.githubusercontent.com/59414164/178087929-4e81df66-2d04-4fa3-8c34-6714e058a711.png)
 
 # Model
 
@@ -58,7 +57,7 @@ an list: [0,0,0,1,0,1,0]
 
 # Deep Q Lerning Resultas
 
-![DQL resutlas (1)](https://user-images.githubusercontent.com/59414164/178087701-d6c5ddcb-b698-409c-8871-5d3dfe54e9d3.png |width=200px)
+![width=100px](https://user-images.githubusercontent.com/59414164/178087701-d6c5ddcb-b698-409c-8871-5d3dfe54e9d3.png)
 
 
 
